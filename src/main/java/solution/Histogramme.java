@@ -2,18 +2,19 @@ package solution;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Histogramme {
     private BufferedImage image;
-    private Map<Color, Integer> histogramme;
+    private HashMap<Color, Integer> histogramme;
 
     public Histogramme(BufferedImage image) {
         this.image = image;
-        this.histogramme = new java.util.HashMap<>();
+        this.histogramme = new HashMap<>();
     }
 
-    public Map calculerHistogramme() {
+    public HashMap calculerHistogramme() {
         int largeur = image.getWidth();
         int hauteur = image.getHeight();
 
@@ -30,21 +31,25 @@ public class Histogramme {
         return histogramme;
     }
 
-    public Color[] getColors(Map<Color, Integer> histogramme, int nbCoul) {
-        Color couleurs [] = new Color[nbCoul];
-        couleurs[0] = Color.BLACK;
-        couleurs[1] = Color.BLACK;
-        couleurs[2] = Color.BLACK;
-        couleurs[3] = Color.BLACK;
-        couleurs[4] = Color.BLACK;
-        for (Color c : histogramme.keySet()) {
+    public Color[] getColors(HashMap<Color, Integer> histogramme, int nbCoul) {
+        Color[] colors = new Color[nbCoul];
+        int[] nbPixels = new int[nbCoul];
+        for (int i = 0; i < nbCoul; i++) {
+            nbPixels[i] = 0;
+        }
+        for (Map.Entry<Color, Integer> entry : histogramme.entrySet()) {
             for (int i = 0; i < nbCoul; i++) {
-                if (histogramme.get(c) > histogramme.get(couleurs[i]) && !c.equals(couleurs[i])) {
-                    couleurs[i] = c;
-
+                if (entry.getValue() > nbPixels[i]) {
+                    for (int j = nbCoul - 1; j > i; j--) {
+                        nbPixels[j] = nbPixels[j - 1];
+                        colors[j] = colors[j - 1];
+                    }
+                    nbPixels[i] = entry.getValue();
+                    colors[i] = entry.getKey();
+                    break;
                 }
             }
         }
-        return couleurs;
+        return colors;
     }
 }
