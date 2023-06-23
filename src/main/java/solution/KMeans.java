@@ -33,8 +33,8 @@ public class KMeans {
         while (distanceBarycentres > 1) {
             // affectation des couleurs de l'image à un centroïde
             anciensBarycentres = centroides.keySet().toArray(new Color[0]);
-            for (int i = 0; i < hauteur; i++) {
-                for (int j = 0; j < largeur; j++) {
+            for (int i = 0; i < largeur; i++) {
+                for (int j = 0; j < hauteur; j++) {
                     Color couleurImage = new Color(image.getRGB(i, j));
                     Color couleurBarycentrePlusProche = null;
                     int distanceMin = Integer.MAX_VALUE;
@@ -59,7 +59,7 @@ public class KMeans {
                     g += c.getGreen();
                     b += c.getBlue();
                 }
-                // si un groupe est vide, cela veut dire que sa couleur est trop éloignée de l'image, on lui attribue donc une couleur aléatoire
+                // si un groupe est vide, cela veut dire que sa couleur est trop éloignée de l'image, on lui attribue donc une nouvelle couleur aléatoire
                 if (centroides.get(anciensBarycentres[i]).size() != 0) {
                     Color nouveauBarycentre = new Color(r / centroides.get(anciensBarycentres[i]).size(), g / centroides.get(anciensBarycentres[i]).size(), b / centroides.get(anciensBarycentres[i]).size());
                     ArrayList<Color> groupe = centroides.get(anciensBarycentres[i]);
@@ -94,16 +94,18 @@ public class KMeans {
     public static void main(String[] args) throws IOException {
 
         // paramètres
-        String dossier = "images_etudiants";
-        String file = "originale";
-        String extension = ".jpg";
-        int nbCoul = 90000;
+        String dossier = "film";
+        String file = "indianajones_small";
+        String extension = ".png";
+        int nbCoul = 100;
 
 
         BufferedImage imageOriginale = ImageIO.read(new File("src/main/resources/" + dossier + "/" + file + extension));
         KMeans kmeans = new KMeans(imageOriginale);
 
         long start = System.currentTimeMillis();
+
+        // récupération des couleurs dans l'image avec l'algorithme des k-means
         Color[] color = kmeans.getColors(nbCoul);
 
         int largeur = imageOriginale.getWidth();
@@ -116,7 +118,7 @@ public class KMeans {
         // on remplace chaque pixel de l'image par la couleur du barycentre le plus proche
         for (int i = 0; i < hauteur; i++) {
             for (int j = 0; j < largeur; j++) {
-                int rgb = imageOriginale.getRGB(i, j);
+                int rgb = imageOriginale.getRGB(j, i);
 
                 int indexDistanceMin = 0;
                 int[] distances = new int[color.length];
@@ -127,7 +129,7 @@ public class KMeans {
                     }
                 }
 
-                imageCopie.setRGB(i, j, color[indexDistanceMin].getRGB());
+                imageCopie.setRGB(j ,i , color[indexDistanceMin].getRGB());
             }
         }
 

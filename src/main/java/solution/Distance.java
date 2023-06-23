@@ -10,8 +10,8 @@ public class Distance {
         int largeur = image1.getWidth();
         int hauteur = image1.getHeight();
 
-        for (int i = 0; i < hauteur; i++) {
-            for (int j = 0; j < largeur; j++) {
+        for (int i = 0; i < largeur; i++) {
+            for (int j = 0; j < hauteur; j++) {
                 int rgb1 = image1.getRGB(i, j);
                 int rgb2 = image2.getRGB(i, j);
                 somme += distanceCouleur(new Color(rgb1), new Color(rgb2));
