@@ -16,6 +16,7 @@ public class KMeans {
     }
 
     public Color[] getColors(int nbCoul) {
+        // initialisation des centroïdes avec des couleurs aléatoires de l'image
         HashMap<Color, ArrayList<Color>> centroides = new HashMap<>();
         for (int i = 0; i < nbCoul; i++) {
             Color c = new Color(image.getRGB((int) (Math.random() * image.getWidth()), (int) (Math.random() * image.getHeight())));
@@ -25,28 +26,30 @@ public class KMeans {
         int largeur = image.getWidth();
         int hauteur = image.getHeight();
 
-        Color[] anciensBarycentres = new Color[nbCoul];
-        int distanceBarycentre = Integer.MAX_VALUE;
 
-        while (distanceBarycentre > 0) {
+        Color[] anciensBarycentres = new Color[nbCoul];
+        int distanceBarycentres = Integer.MAX_VALUE;
+
+        while (distanceBarycentres > 1) {
+            // affectation des couleurs de l'image à un centroïde
             anciensBarycentres = centroides.keySet().toArray(new Color[0]);
             for (int i = 0; i < hauteur; i++) {
                 for (int j = 0; j < largeur; j++) {
-                    Color couleur = new Color(image.getRGB(i, j));
-                    Color plusProche = null;
+                    Color couleurImage = new Color(image.getRGB(i, j));
+                    Color couleurBarycentrePlusProche = null;
                     int distanceMin = Integer.MAX_VALUE;
                     for (Color c : centroides.keySet()) {
-                        int distance = Distance.distanceCouleur(c, couleur);
+                        int distance = Distance.distanceCouleur(c, couleurImage);
                         if (distance < distanceMin) {
                             distanceMin = distance;
-                            plusProche = c;
+                            couleurBarycentrePlusProche = c;
                         }
                     }
-                    centroides.get(plusProche).add(couleur);
+                    centroides.get(couleurBarycentrePlusProche).add(couleurImage);
                 }
             }
 
-
+            // calcul des nouveaux centroïdes sur les barycentres des nouveaux groupes
             for (int i = 0; i < nbCoul; i++) {
                 int r = 0;
                 int g = 0;
@@ -56,21 +59,29 @@ public class KMeans {
                     g += c.getGreen();
                     b += c.getBlue();
                 }
+                // si un groupe est vide, cela veut dire que sa couleur est trop éloignée de l'image, on lui attribue donc une couleur aléatoire
                 if (centroides.get(anciensBarycentres[i]).size() != 0) {
                     Color nouveauBarycentre = new Color(r / centroides.get(anciensBarycentres[i]).size(), g / centroides.get(anciensBarycentres[i]).size(), b / centroides.get(anciensBarycentres[i]).size());
                     ArrayList<Color> groupe = centroides.get(anciensBarycentres[i]);
                     centroides.remove(anciensBarycentres[i]);
                     centroides.put(nouveauBarycentre, groupe);
+                } else {
+                    Color nouveauBarycentre = new Color(image.getRGB((int) (Math.random() * image.getWidth()), (int) (Math.random() * image.getHeight())));
+                    ArrayList<Color> groupe = new ArrayList<>();
+                    centroides.remove(anciensBarycentres[i]);
+                    centroides.put(nouveauBarycentre, groupe);
                 }
             }
-            distanceBarycentre = distanceBarycentres(anciensBarycentres, centroides.keySet().toArray(new Color[0]));
+            distanceBarycentres = distanceBarycentres(anciensBarycentres, centroides.keySet().toArray(new Color[0]));
         }
         return anciensBarycentres;
     }
 
+    // méthode pour calculer la distance entre les anciens barycentres et les nouveaux barycentres
     public int distanceBarycentres(Color[] barycentres, Color[] nouveauxBarycentres) {
         int distance = 0;
         for (int i = 0; i < barycentres.length; i++) {
+            // si un barycentre est null, cela veut dire qu'il n'a pas de groupe associé, on lui attribue donc une distance très grande
             if (barycentres[i] != null && nouveauxBarycentres[i] != null) {
                 distance += Distance.distanceCouleur(barycentres[i], nouveauxBarycentres[i]);
             } else {
@@ -81,23 +92,31 @@ public class KMeans {
     }
 
     public static void main(String[] args) throws IOException {
-        String file = "copie.png";
+
+        // paramètres
+        String dossier = "images_etudiants";
+        String file = "originale";
+        String extension = ".jpg";
+        int nbCoul = 90000;
+
+
+        BufferedImage imageOriginale = ImageIO.read(new File("src/main/resources/" + dossier + "/" + file + extension));
+        KMeans kmeans = new KMeans(imageOriginale);
+
         long start = System.currentTimeMillis();
-        BufferedImage image = ImageIO.read(new File("src/main/resources/images_etudiants/" + file));
-        KMeans kmeans = new KMeans(image);
-        int nbCoul = 15;
         Color[] color = kmeans.getColors(nbCoul);
 
-        int largeur = image.getWidth();
-        int hauteur = image.getHeight();
+        int largeur = imageOriginale.getWidth();
+        int hauteur = imageOriginale.getHeight();
 
         BufferedImage imageCopie = new BufferedImage(largeur, hauteur, BufferedImage.TYPE_3BYTE_BGR);
 
         Distance distance = new Distance();
 
+        // on remplace chaque pixel de l'image par la couleur du barycentre le plus proche
         for (int i = 0; i < hauteur; i++) {
             for (int j = 0; j < largeur; j++) {
-                int rgb = image.getRGB(i, j);
+                int rgb = imageOriginale.getRGB(i, j);
 
                 int indexDistanceMin = 0;
                 int[] distances = new int[color.length];
@@ -111,13 +130,14 @@ public class KMeans {
                 imageCopie.setRGB(i, j, color[indexDistanceMin].getRGB());
             }
         }
+
         long end = System.currentTimeMillis();
         System.out.println("Temps d'exécution : " + (end - start) + " ms");
         Distance distanceImages = new Distance();
-        System.out.println("Distance entre les deux images : " + distanceImages.distance(image, imageCopie));
+        System.out.println("Distance entre les deux images : " + distanceImages.distance(imageOriginale, imageCopie));
 
 
-        boolean success = ImageIO.write(imageCopie, "png", new File("src/main/resources/questions/solution_etudiant/kmeans_" + nbCoul + "_" + file));
+        boolean success = ImageIO.write(imageCopie, "png", new File("src/main/resources/questions/solution_etudiant/kmeans_" + nbCoul + "_" + file + ".jpg"));
         if (success) {
             System.out.println("Le fichier a bien été écrit");
         } else {
