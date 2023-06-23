@@ -30,7 +30,7 @@ public class Main_Alea {
 
             // Si l'utilisateur a passé un argument, on le prend en compte en tant que nombre de couleurs
             if (args.length > 1) {
-                nbCouleurs = Integer.parseInt(args[0]);
+                nbCouleurs = Integer.parseInt(args[1]);
             }
 
             // On lance un chronomètre
