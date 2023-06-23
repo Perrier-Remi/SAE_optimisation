@@ -56,8 +56,14 @@ public class Main_Alea {
             // On arrête le chronomètre
             long end = System.currentTimeMillis();
 
+            // Fichier de sortie par défaut
+            File outputfile = new File("src/main/resources/images_etudiants/solution_alea.png");
+            // Si l'utilisateur a passé un troisième argument, on le prend en compte en tant que fichier de sortie
+            if(args.length > 2){
+                outputfile = new File(args[2]);
+            }
             // On écrit l'image résultat dans un fichier
-            boolean success = ImageIO.write(imageCopie, "png", new File("src/main/resources/images_etudiants/solution_alea.png"));
+            boolean success = ImageIO.write(imageCopie, "png", outputfile);
 
 
             if (success) {
